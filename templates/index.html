@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Zero Trust UAV — Field Dashboard</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="/static/socket.io/socket.io.js"></script>
+
+<style>
+/* ===== Military Dark Theme ===== */
+body {
+  margin: 0;
+  background: #0b1210;
+  color: #e5e7eb;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+header {
+  padding: 20px 30px;
+  background: linear-gradient(180deg, #0f1c16, #0b1210);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1f2d25;
+}
+
+header h1 {
+  color: #4ade80;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.status { font-size: 14px; }
+.socket-ok { color: #4ade80; }
+.socket-off { color: #facc15; }
+
+/* ===== Layout ===== */
+.container {
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  background: #111b17;
+  border: 1px solid #1f2d25;
+  border-radius: 14px;
+  padding: 18px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.7);
+}
+
+.section-title {
+  color: #4ade80;
+  font-weight: bold;
+ letter-spacing: 1px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
+/* ===== Metrics ===== */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.metric {
+  background: #0b1210;
+  border: 1px solid #1f2d25;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.metric label {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.metric .value {
+  font-size: 26px;
+  font-weight: 600;
+  margin-top: 6px;
+}
+
+/* ===== MPU ===== */
+.mpu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.mpu-box {
+  background: #0b1210;
+  border: 1px solid #1f2d25;
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+/* ===== Alerts ===== */
+.alert-box {
+  background: #0b1210;
+  border: 1px solid #1f2d25;
+  border-radius: 10px;
+  padding: 12px;
+  min-height: 80px;
+}
+
+.alert-ok { color: #4ade80; }
+.alert-warn { color: #f87171; }
+
+/* ===== Graph ===== */
+canvas {
+  background: #0b1210;
+  border-radius: 10px;
+}
+
+/* ===== Role Badge ===== */
+.value-box {
+  background: #0b1210;
+  border: 1px solid #1f2d25;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #4ade80;
+}
+
+/* ===== Role-based visibility ===== */
+[data-role="viewer"] .pilot-only,
+[data-role="viewer"] .admin-only {
+  display: none;
+}
+
+[data-role="pilot"] .admin-only {
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<!-- LOGOUT BUTTON -->
+<div style="position:absolute; top:18px; right:140px;">
+  <button id="logoutBtn"
+    style="
+      background:#1f2933;
+      border:1px solid #374151;
+      color:#e5e7eb;
+      padding:6px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:12px;
+    ">
+    LOGOUT
+  </button>
+</div>
+
+<!-- ROLE BADGE -->
+<div style="position:absolute; top:18px; right:20px;">
+  <span id="roleBadge" class="value-box">ROLE: --</span>
+</div>
+
+<header>
+  <h1>ZERO TRUST UAV — FIELD DASHBOARD</h1>
+  <div class="status">
+    Socket: <span id="socketStatus" class="socket-off">DISCONNECTED</span>
+  </div>
+</header>
+<div class="container">
+
+<!-- LEFT -->
+<div>
+
+  <!-- INA219 -->
+  <div class="card">
+    <div class="section-title">INA219 — Power Monitor</div>
+    <div class="metrics">
+      <div class="metric">
+        <label>Bus Voltage (V)</label>
+        <div class="value" id="vbus">--</div>
+      </div>
+      <div class="metric">
+        <label>Current (mA)</label>
+        <div class="value" id="current">--</div>
+      </div>
+      <div class="metric">
+        <label>Power (mW)</label>
+        <div class="value" id="power">--</div>
+      </div>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- MPU6050 -->
+  <div class="card">
+    <div class="section-title">MPU6050 — IMU Sensor</div>
+
+ <strong>Accelerometer</strong>
+    <div class="mpu-grid">
+      <div class="mpu-box">X: <span id="ax">--</span></div>
+      <div class="mpu-box">Y: <span id="ay">--</span></div>
+      <div class="mpu-box">Z: <span id="az">--</span></div>
+    </div>
+
+    <br>
+
+    <strong>Gyroscope</strong>
+    <div class="mpu-grid">
+      <div class="mpu-box">X: <span id="gx">--</span></div>
+      <div class="mpu-box">Y: <span id="gy">--</span></div>
+      <div class="mpu-box">Z: <span id="gz">--</span></div>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- FLIGHT CONTROL -->
+  <div class="card pilot-only">
+    <div class="section-title">Flight Control</div>
+    <button id="armBtn"
+      style="
+        width:100%;
+        padding:14px;
+        background:#dc2626;
+        border:none;
+ border-radius:10px;
+        color:white;
+        font-size:16px;
+        font-weight:600;
+        cursor:pointer;
+      ">
+      ARM MOTORS
+    </button>
+  </div>
+
+  <br>
+
+  <!-- GRAPH -->
+  <div class="card">
+    <div class="section-title">Anomaly Score Graph</div>
+    <canvas id="scoreChart" height="120"></canvas>
+  </div>
+
+</div>
+
+<!-- RIGHT -->
+<div>
+
+  <!-- ALERTS -->
+  <div class="card">
+    <div class="section-title">Alerts</div>
+    <div id="alerts" class="alert-box alert-ok">
+      No anomalies detected.
+</div>
+  </div>
+
+  <br>
+
+  <!-- AUDIT LOGS (ADMIN ONLY) -->
+  <div class="card admin-only">
+    <div class="section-title">Audit Logs</div>
+    <pre id="auditLog"
+      style="
+        max-height:200px;
+        overflow:auto;
+        font-size:12px;
+        background:#0b1210;
+        border-radius:8px;
+        padding:10px;
+      ">
+Loading audit logs...
+    </pre>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+/* ===== ROLE FETCH ===== */
+async function refreshUser() {
+ try {
+    const r = await fetch('/secure-status', { credentials: 'same-origin' });
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    roleBadge.textContent = 'ROLE: ' + j.role.toUpperCase();
+    document.body.dataset.role = j.role;
+  } catch {
+    roleBadge.textContent = 'ROLE: NONE';
+    document.body.dataset.role = 'none';
+  }
+}
+refreshUser();
+
+/* ===== LOGOUT ===== */
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.onclick = async () => {
+    await fetch("/logout", { credentials: "same-origin" });
+    window.location.href = "/login_page";
+  };
+}
+
+/* ===== SOCKET ===== */
+const socketStatus = document.getElementById("socketStatus");
+const alerts = document.getElementById("alerts");
+const sio = io();
+
+sio.on("connect", () => {
+socketStatus.textContent = "CONNECTED";
+  socketStatus.className = "socket-ok";
+});
+
+sio.on("disconnect", () => {
+  socketStatus.textContent = "DISCONNECTED";
+  socketStatus.className = "socket-off";
+});
+
+/* ===== GRAPH ===== */
+const scoreCanvas = document.getElementById("scoreChart");
+const ctx = scoreCanvas.getContext("2d");
+
+const scoreChartObj = new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [{
+      label: "Anomaly Score",
+      data: [],
+      borderColor: "#facc15",
+      borderWidth: 2,
+      tension: 0.3,
+      fill: false
+    }]
+  },
+  options: {
+animation: false,
+    scales: {
+      y: { beginAtZero: false }
+    }
+  }
+});
+
+/* ===== TELEMETRY ===== */
+sio.on("sensor_update", d => {
+  vbus.textContent = d.vbus?.toFixed(2) ?? "--";
+  current.textContent = d.current_mA?.toFixed(2) ?? "--";
+  power.textContent = d.power_mW?.toFixed(2) ?? "--";
+
+  ax.textContent = d.accel?.x?.toFixed(2) ?? "--";
+  ay.textContent = d.accel?.y?.toFixed(2) ?? "--";
+  az.textContent = d.accel?.z?.toFixed(2) ?? "--";
+
+  gx.textContent = d.gyro?.x?.toFixed(2) ?? "--";
+  gy.textContent = d.gyro?.y?.toFixed(2) ?? "--";
+  gz.textContent = d.gyro?.z?.toFixed(2) ?? "--";
+
+if (d.anomaly) {
+  let msg = "⚠ Anomaly detected";
+
+  if (Array.isArray(d.xai) && d.xai.length > 0) {
+    msg += "\nCause:";
+    d.xai.forEach(([feature, percent]) => {
+      msg += `\n• ${feature.toUpperCase()} deviation (${percent}%)`;
+ });
+  } else {
+    msg += "\nCause: Unknown";
+  }
+
+  alerts.textContent = msg;
+  alerts.className = "alert-box alert-warn";
+} else {
+  alerts.textContent = "No anomalies detected.";
+  alerts.className = "alert-box alert-ok";
+}
+
+
+  if (d.score != null) {
+    scoreChartObj.data.labels.push(new Date().toLocaleTimeString());
+    scoreChartObj.data.datasets[0].data.push(d.score);
+    if (scoreChartObj.data.labels.length > 30) {
+      scoreChartObj.data.labels.shift();
+      scoreChartObj.data.datasets[0].data.shift();
+    }
+    scoreChartObj.update();
+  }
+});
+
+/* ===== ARM MOTORS ===== */
+const armBtn = document.getElementById("armBtn");
+if (armBtn) {
+  armBtn.onclick = async () => {
+ armBtn.disabled = true;
+    armBtn.textContent = "ARMING...";
+    try {
+      const r = await fetch("/arm-motors", { method:"POST", credentials:"same-origin" });
+      const j = await r.json();
+      if (r.ok) {
+        alerts.textContent = "🛑 Motors ARMED by pilot";
+        alerts.className = "alert-box alert-warn";
+        armBtn.textContent = "MOTORS ARMED";
+      } else {
+        alerts.textContent = "❌ " + (j.msg || "Not authorized");
+        alerts.className = "alert-box alert-warn";
+        armBtn.textContent = "ARM MOTORS";
+        A      }
+    } catch {
+      alerts.textContent = "❌ Control link failure";
+      alerts.className = "alert-box alert-warn";
+      armBtn.textContent = "ARM MOTORS";
+    }
+    armBtn.disabled = false;
+  };
+}
+
+/* ===== AUDIT LOGS (ADMIN ONLY) ===== */
+async function loadAuditLogs() {
+  if (document.body.dataset.role !== "admin") return;
+
+  try {
+const r = await fetch("/audit-logs", { credentials: "same-origin" });
+    if (!r.ok) return;
+
+    const logs = await r.json();
+    const box = document.getElementById("auditLog");
+
+    box.textContent = logs.map(l =>
+      `[${l.timestamp}] ${l.user} (${l.role}) → ${l.action} from ${l.ip}`
+    ).join("\n");
+
+  } catch (e) {
+    console.error("Audit log fetch failed");
+  }
+}
+
+setInterval(loadAuditLogs, 5000);
+loadAuditLogs();
+</script>
+
+</body>
+</html>
