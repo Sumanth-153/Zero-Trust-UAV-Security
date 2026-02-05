@@ -1,4 +1,3 @@
-  GNU nano 8.4              sensor_api.py
 # sensor_api.py
 from flask import Blueprint, request, jsonify, current_app
 from decorators import check_replay
@@ -27,6 +26,5 @@ def ingest():
     # replay protection
     if not nonce or not ts:
         return jsonify({"msg":"nonce and time required"}), 400
-                       [ Read 59 lines ]
-^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
-^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
+                      
+
