@@ -1,0 +1,32 @@
+  GNU nano 8.4               users.json
+{
+  "viewer1": {
+    "pw_hash": "scrypt:32768:8:1$5UPsuwRdJ3Be06IK$5f0dd1a7b811d>
+    "role": "viewer"
+  },
+  "pilot1": {
+    "pw_hash": "scrypt:32768:8:1$mHVyHwB7O5BX51sY$0160b7c438f00>
+    "role": "pilot"
+  },
+  "admin1": {
+    "pw_hash": "scrypt:32768:8:1$frvm3xeHXtmBGlnQ$2848472704a57>
+    "role": "admin"
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                       [ Read 14 lines ]
+^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
+^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
