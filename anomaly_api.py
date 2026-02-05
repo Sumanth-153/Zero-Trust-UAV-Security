@@ -1,4 +1,3 @@
-  GNU nano 8.4             anomaly_api.py
 # anomaly_api.py
 import joblib
 import numpy as np
@@ -28,5 +27,4 @@ def predict():
         js.get('vbus', 0),
         js.get('current_mA', js.get('current', 0)),
 
-^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
-^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
+
