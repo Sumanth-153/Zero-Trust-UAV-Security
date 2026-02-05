@@ -1,4 +1,3 @@
-  GNU nano 8.4              flight_api.py
 # flight_api.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
@@ -24,9 +23,3 @@ def send_command():
         sio.emit("command", {"cmd":cmd, "params":js.get("params>
     return jsonify({"msg":"sent","cmd":cmd})
 
-
-
-
-                       [ Read 24 lines ]
-^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
-^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
