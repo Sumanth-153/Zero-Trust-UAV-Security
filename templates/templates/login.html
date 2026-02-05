@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>UAV ZTA Secure Login</title>
+
+  <style>
+    body {
+      background: radial-gradient(circle at top, #0f1a15, #0b1210);
+      color: #e5e7eb;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-card {
+      background: #111b17;
+      border: 1px solid #1f2d25;
+      border-radius: 12px;
+      padding: 32px;
+      width: 360px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      color: #4ade80;
+text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0 14px;
+      background: #0b1210;
+      border: 1px solid #1f2d25;
+      border-radius: 6px;
+      color: #e5e7eb;
+      outline: none;
+    }
+
+input:focus {
+      border-color: #4ade80;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #4ade80, #22c55e);
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #052e16;
+      letter-spacing: 0.5px;
+    }
+
+    .error {
+      margin-top: 10px;
+      color: #facc15;
+      font-size: 13px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+text-align: center;
+      letter-spacing: 1px;
+ }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #9ca3af;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 13px;
+      color: #9ca3af;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 6px 0 14px;
+      background: #0b1210;
+      border: 1px solid #1f2d25;
+      border-radius: 6px;
+      color: #e5e7eb;
+      outline: none;
+    }
+<div class="login-card">
+  <h2>UAV ZTA CONSOLE</h2>
+  <div class="subtitle">Authorized personnel only</div>
+<label>Username</label>
+  <input id="username">
+
+  <label>Password</label>
+  <input id="password" type="password">
+
+  <button onclick="doLogin()">AUTHENTICATE</button>
+  <div class="error" id="err"></div>
+</div>
+
+<script>
+async function doLogin() {
+  const r = await fetch('/login', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value
+    })
+  });
+
+  if (r.redirected) {
+    window.location.href = r.url;
+  } else {
+    document.getElementById('err').textContent = "Authentication failed";
+  }
+}
+</script>
+</body>
+</html>
