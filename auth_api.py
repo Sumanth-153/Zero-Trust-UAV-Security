@@ -1,4 +1,3 @@
-  GNU nano 8.4               auth_api.py
 # auth_api.py
 import os, json, time, secrets
 from pathlib import Path
@@ -27,6 +26,5 @@ def create_user(username, password, role="operator"):
         "pw_hash": generate_password_hash(password),
         "role": role,
         "otp_secret": otp_secret,
-                       [ Read 88 lines ]
-^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
-^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
+                  
+
