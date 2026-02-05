@@ -23,10 +23,3 @@ def del_user(username):
     return jsonify({"msg":"deleted"})
 
 
-
-
-
-                       [ Read 23 lines ]
-^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
-^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
-
