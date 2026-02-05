@@ -1,4 +1,3 @@
-  GNU nano 8.4              admin_api.py
 # admin_api.py
 from flask import Blueprint, jsonify, request
 from decorators import role_required
@@ -30,3 +29,4 @@ def del_user(username):
                        [ Read 23 lines ]
 ^G Help     ^O Write Out^F Where Is ^K Cut      ^T Execute
 ^X Exit     ^R Read File^\ Replace  ^U Paste    ^J Justify
+
